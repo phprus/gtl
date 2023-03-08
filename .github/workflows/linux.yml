@@ -71,7 +71,7 @@ jobs:
         CXX: clang++-15
         CXXFLAGS: -stdlib=libc++
       run: |
-        cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_CXX_STANDARD=${{matrix.standard}} -DCMAKE_BUILD_TYPE=${{matrix.build_type}} $GITHUB_WORKSPACE
+        cmake -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_CXX_STANDARD=${{matrix.standard}} -DCMAKE_BUILD_TYPE=${{matrix.build_type}} $GITHUB_WORKSPACE
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
