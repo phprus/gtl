@@ -43,3 +43,45 @@ jobs:
         CTEST_OUTPUT_ON_FAILURE: True
       run: |
         ctest -C ${{matrix.build_type}}
+
+  build-clang-15:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+        standard: [20]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.0.0
+
+    - name: Create Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lsb-release wget software-properties-common gnupg
+        sudo apt-get install -y g++
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository "deb http://apt.llvm.org/$(lsb_release -cs)/  llvm-toolchain-$(lsb_release -cs)-15 main"
+        sudo apt-get install -y clang-15 libomp-15-dev libc++-15-dev libc++abi-15-dev
+        cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure
+      working-directory: ${{runner.workspace}}/build
+      env:
+        CC: clang-15
+        CXX: clang++-15
+        CXXFLAGS: -stdlib=libc++
+      run: |
+        cmake -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_CXX_STANDARD=${{matrix.standard}} -DCMAKE_BUILD_TYPE=${{matrix.build_type}} $GITHUB_WORKSPACE
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        cpus=`nproc`
+        cmake --build . --config ${{matrix.build_type}} --parallel $cpus
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      env:
+        CTEST_OUTPUT_ON_FAILURE: True
+      run: |
+        ctest -C ${{matrix.build_type}}
